@@ -33,6 +33,12 @@ jobs:
       
     - run: zip -r project.zip ./
     
+    - name: Archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: CodePackage
+        path: project.zip
+    
   upload-scan:
     needs: build
     runs-on: ubuntu-latest
@@ -42,5 +48,5 @@ jobs:
     steps:
     - name: Upload & Scan
       run: |
-        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath=project.zip -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker' -criticality='VeryHigh'
+        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='project.zip' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker' -criticality='VeryHigh'
   
