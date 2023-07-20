@@ -32,6 +32,7 @@ jobs:
       run: mvn -B package --file app/pom.xml
       
     - run: zip -r project.zip ./
+    - run: pwd
     
     - name: Archive package
       uses: actions/upload-artifact@v2
