@@ -26,12 +26,14 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file app/pom.xml
+      
+    - run: zip -r project.zip ./
         
   # zip the project and move it to a staging directory
-    - name: Zip Project
-      run: zip -R project.zip '*.py' '*.js' '*.php' '*.ts'
-      env:
-        build-name: project.zip
+  #  - name: Zip Project
+  #    run: zip -R project.zip '*.py' '*.js' '*.php' '*.ts'
+  #    env:
+  #      build-name: project.zip
       
     - name: Archive package
       uses: actions/upload-artifact@v2
@@ -55,7 +57,7 @@ jobs:
     #  Submit  project to pipeline scan
     - name: Pipeline Scan
       run: |
-        java -jar /opt/veracode/pipeline-scan.jar --veracode_api_id="${{secrets.VERACODE_API_ID}}" --veracode_api_key="${{secrets.VERACODE_API_KEY}}" --file="project.zip" --json_output_file="results.json"
+        java -jar /opt/veracode/pipeline-scan.jar --veracode_api_id="${{secrets.VERACODE_API_ID}}" --veracode_api_key="${{secrets.VERACODE_API_KEY}}" --file project.zip --json_output_file="results.json"
       continue-on-error: true
 
     - uses: actions/upload-artifact@v2
@@ -74,13 +76,12 @@ jobs:
       with:
         name: ScanResults
 
-    - name: convert
-      uses: veracode/veracode-pipeline-scan-results-to-sarif@master
+    - name: Convert pipeline scan output to SARIF format
+      id: convert
+      uses: veracode/veracode-pipeline-scan-results-to-sarif@ff08ae5b45d5384cb4679932f184c013d34da9be
       with:
         pipeline-results-json: results.json
-        output-results-sarif: veracode-results.sarif
-        finding-rule-level: "4:3:0"
     - uses: github/codeql-action/upload-sarif@v2
       with:
-    # Path to SARIF file relative to the root of the repository
-        sarif_file: veracode-results.sarif     
+        # Path to SARIF file relative to the root of the repository
+        sarif_file: veracode-results.sarif
