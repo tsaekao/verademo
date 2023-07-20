@@ -97,7 +97,7 @@ jobs:
         path: filtered_results.json
         
   import-issues:
-    needs: pipeline-scan
+    needs: process-results
     runs-on: ubuntu-latest
     steps:
       - name: get scan results
