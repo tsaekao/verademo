@@ -90,11 +90,6 @@ jobs:
       with:
         # Path to SARIF file relative to the root of the repository
         sarif_file: veracode-results.sarif
-    - name: save filtered results file
-      uses: actions/upload-artifact@v2
-      with:
-        name: filtered-results
-        path: filtered_results.json
         
   import-issues:
     needs: process-results
@@ -103,9 +98,9 @@ jobs:
       - name: get scan results
         uses: actions/download-artifact@v2
         with:
-          name: filtered-results
+          name: ScanResults
 
       - name: import flaws as issues
         uses: veracode/veracode-flaws-to-issues@v2.1.19
         with:
-          scan-results-json: 'filtered_results.json'
+          scan-results-json: 'results.json'
