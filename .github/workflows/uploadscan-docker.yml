@@ -42,6 +42,7 @@ jobs:
     steps:
     - name: Upload & Scan
       run: |
+        java -jar /opt/veracode/api-wrapper.jar 
           appname: 'Thomas Saekao Technical Panel'
           createprofile: false
           filepath: 'app/target/project.zip'
