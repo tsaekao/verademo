@@ -27,25 +27,19 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file app/pom.xml
       
-    container:
+  upload-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    container: 
       image: veracode/api-wrapper-java:latest
-      options:
-        -vid ${VERACODE_API_KEY_ID}
-        -vkey ${VERACODE_API_KEY_SECRET} 
-        -action UploadAndScan
-        -createprofile false
-        -appname 'Thomas aekao Technical Panel'
-        -version 'Docker Scan'
-        -filepath 'app/target/verademo.war'
-      
-    #- run: zip -r project.zip ./
-    #- run: pwd
-    
-    #- name: Archive package
-    # uses: actions/upload-artifact@v2
-    #  with:
-    #    name: CodePackage
-    #    path: project.zip
+      options: --user root # our normal luser doesn't have privs to write to github directories
+
+    steps:
+    #  Submit project to Veracode platform
+    - name: Pipeline Scan
+      run: |
+        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='app/target/verademo.war' -include='*zip' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker'
+      continue-on-error: true
     
 
         # java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='' -include='*zip' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker' -criticality='VeryHigh'
