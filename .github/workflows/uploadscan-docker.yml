@@ -24,30 +24,29 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file app/pom.xml
       
-    - run: zip -r project.zip ./
-    - run: pwd
-    
-    - name: Archive package
-      uses: actions/upload-artifact@v2
-      with:
-        name: CodePackage
-        path: project.zip
-    
-  upload-scan:
-    needs: build
-    runs-on: ubuntu-latest
     container:
       image: veracode/api-wrapper-java:latest
-  
-    steps:
-    - name: Upload & Scan
-      run: |
-        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='' -include='*zip' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker' -criticality='VeryHigh'
+      options:
+        -vid ${VERACODE_API_KEY_ID}
+        -vkey ${VERACODE_API_KEY_SECRET} 
+        -action UploadAndScan
+        -createprofile false
+        -appname 'Thomas aekao Technical Panel'
+        -version 'Docker Scan'
+        -filepath 'app/target/verademo.war'
+      
+    #- run: zip -r project.zip ./
+    #- run: pwd
+    
+    #- name: Archive package
+    # uses: actions/upload-artifact@v2
+    #  with:
+    #    name: CodePackage
+    #    path: project.zip
+    
+
+        # java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='' -include='*zip' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker' -criticality='VeryHigh'
   
