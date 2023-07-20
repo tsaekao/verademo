@@ -1,6 +1,6 @@
 # This workflow will initiate a Veracode Static Analysis Pipeline scan, return a results.json and convert to SARIF for upload as a code scanning alert
 
-name: Pipeline Scan with Docker
+name: Upload & Scan with Docker
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -32,60 +32,23 @@ jobs:
       run: mvn -B package --file app/pom.xml
       
     - run: zip -r project.zip ./
-        
-  # zip the project and move it to a staging directory
-  #  - name: Zip Project
-  #    run: zip -R project.zip '*.py' '*.js' '*.php' '*.ts'
-  #    env:
-  #      build-name: project.zip
-      
-    - name: Archive package
-      uses: actions/upload-artifact@v2
-      with:
-        name: CodePackage
-        path: project.zip
-  
-  pipeline-scan:
+    
+  upload-scan:
     needs: build
     runs-on: ubuntu-latest
-    container: 
-      image: veracode/pipeline-scan:latest
-      options: --user root # our normal luser doesn't have privs to write to github directories
-
+    container:
+      image: veracode/api-wrapper-java:latest
+  
     steps:
-    - name: Retrieve artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: CodePackage
-    
-    #  Submit  project to pipeline scan
-    - name: Pipeline Scan
+    - name: Upload & Scan
       run: |
-        java -jar /opt/veracode/pipeline-scan.jar --veracode_api_id="${{secrets.VERACODE_API_ID}}" --veracode_api_key="${{secrets.VERACODE_API_KEY}}" --file project.zip
-      continue-on-error: true
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: ScanResults
-        path: results.json
-
-  # Convert pipeline scan output to SARIF format  
-  process-results:
-    needs: pipeline-scan
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Retrieve results
-      uses: actions/download-artifact@v2
-      with:
-        name: ScanResults
-
-    - name: Convert pipeline scan output to SARIF format
-      id: convert
-      uses: veracode/veracode-pipeline-scan-results-to-sarif@ff08ae5b45d5384cb4679932f184c013d34da9be
-      with:
-        pipeline-results-json: results.json
-    - uses: github/codeql-action/upload-sarif@v2
-      with:
-        # Path to SARIF file relative to the root of the repository
-        sarif_file: veracode-results.sarif
+          appname: 'Thomas Saekao Technical Panel'
+          createprofile: false
+          filepath: 'app/target/project.zip'
+          vid: '${{ secrets.VERACODE_API_ID }}'
+          vkey: '${{ secrets.VERACODE_API_KEY }}'
+          createsandbox: 'false'
+          sandboxname: 'Docker'
+          # include: '*.war'
+          criticality: 'VeryHigh'
+  
