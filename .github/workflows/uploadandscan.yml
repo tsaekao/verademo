@@ -16,7 +16,7 @@ jobs:
       - name: Veracode Upload And Scan
         uses: veracode/veracode-uploadandscan-action@0.2.6
         with:
-          appname: 'Thomas Saekao Technical Panel'
+          appname: ''
           createprofile: false
           filepath: 'app/target/verademo.war'
           vid: '${{ secrets.VERACODE_API_ID }}'
