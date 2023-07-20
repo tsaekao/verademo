@@ -36,9 +36,9 @@ jobs:
 
     steps:
     #  Submit project to Veracode platform
-    - name: Pipeline Scan
+    - name: Upload Scan
       run: |
-        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='app/target/verademo.war' -include='*zip' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker'
+        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -version='Docker-Scan-1' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='app/target/' -include='*war' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker'
       continue-on-error: true
     
 
