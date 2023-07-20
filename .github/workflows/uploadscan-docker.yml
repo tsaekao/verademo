@@ -43,13 +43,13 @@ jobs:
     - name: Upload & Scan
       run: |
         java -jar /opt/veracode/api-wrapper.jar 
-          --appname: 'Thomas Saekao Technical Panel'
-          --createprofile: false
-          --filepath: 'app/target/project.zip'
-          --vid: '${{ secrets.VERACODE_API_ID }}'
-          --vkey: '${{ secrets.VERACODE_API_KEY }}'
-          --createsandbox: 'false'
-          --sandboxname: 'Docker'
+          --appname = 'Thomas Saekao Technical Panel'
+          --createprofile = 'false'
+          --filepath = 'app/target/project.zip'
+          --vid = '${{ secrets.VERACODE_API_ID }}'
+          --vkey = '${{ secrets.VERACODE_API_KEY }}'
+          --createsandbox = 'false'
+          --sandboxname = 'Docker'
           # include: '*.war'
-          --criticality: 'VeryHigh'
+          --criticality = 'VeryHigh'
   
