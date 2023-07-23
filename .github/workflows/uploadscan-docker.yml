@@ -38,7 +38,7 @@ jobs:
     #  Submit project to Veracode platform
     - name: Upload Scan
       run: |
-        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='verademo/verademo/' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker'
+        java -jar /opt/veracode/api-wrapper.jar -action='UploadAndScan' -appname='Thomas Saekao Technical Panel' -createprofile='false' -filepath='app/target' -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -createsandbox='false' -sandboxname='Docker'
       continue-on-error: true
     
 
