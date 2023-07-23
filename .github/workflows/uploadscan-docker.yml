@@ -26,6 +26,14 @@ jobs:
     
     - name: Build with Maven
       run: mvn -B package --file app/pom.xml
+    
+    - run: zip -r project.zip ./
+    
+    - name: Archive package
+      uses: actions/upload-artifact@v2
+      with:
+        name: CodePackage
+        path: project.zip
       
   upload-scan:
     needs: build
@@ -35,10 +43,14 @@ jobs:
       options: --user root # our normal luser doesn't have privs to write to github directories
 
     steps:
+    - name: Retrieve artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: CodePackage
     #  Submit project to Veracode platform
     - name: Upload Scan
       run: |
-        java -jar /opt/veracode/api-wrapper.jar -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -action='UploadAndScan' -appname='Thomas Saekao Technical Panel' -createprofile='false' -version='Docker-Scan-1' -filepath='./app/verademo.war' -createsandbox='false' -sandboxname='Docker'
+        java -jar /opt/veracode/api-wrapper.jar -vid='${{ secrets.VERACODE_API_ID }}' -vkey='${{ secrets.VERACODE_API_KEY }}' -action='UploadAndScan' -appname='Thomas Saekao Technical Panel' -createprofile='false' -version='Docker-Scan-1' -filepath='project.zip' -createsandbox='false' -sandboxname='Docker'
       continue-on-error: true
     
 
