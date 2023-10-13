@@ -4,42 +4,63 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 # This is an example of using VeraDemo Java test application with the Veracode Static Pipeline scanner.  A Veracode subscription is required.
 trigger:
-- main
-pool:
-  vmImage: 'ubuntu-latest'
-steps:
-- task: Maven@3
-  displayName: Build with Maven
-  inputs:
-    mavenPomFile: 'app/pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+  branches:
+    include:
+    - main
+stages:
+- stage: __default
+  jobs:
+  - job: Job
+    pool:
+      name: Default
+    steps:
+    - task: JavaToolInstaller@0
+      enabled: false
+      inputs:
+        versionSpec: "16"
+        jdkArchitectureOption: x64
+        jdkSourceOption: localDirectory
+        jdkFile: "/builds/jdk-16.0.1_linux-x64_bin.tar.gz"
+        jdkDestinationDirectory: "/builds/binaries/externals"
+        cleanDestinationDirectory: true
+    - task: Maven@3
+      displayName: Build with Maven
+      inputs:
+        mavenPomFile: 'app/pom.xml'
+        mavenOptions: '-Xmx3072m'
+        javaHomeOption: 'Path'
+        jdkDirectory: 'C:\Program Files\Java\jdk-10.0.1'
+        jdkVersionOption: '1.8'
+        jdkArchitectureOption: 'x64'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'package'
+    - task: CopyFiles@2
+      displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: '**/?(*.ear|*.war|*.jar)'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: Veracode@3
+      enabled: true
+      inputs:
+        ConnectionDetailsSelection: 'Service Connection'
+        AnalysisService: 'verademo'
+        veracodeAppProfile: 'Verademo'
+        version: '$(build.buildNumber)'
+        filepath: '$(build.artifactstagingdirectory)'
+        sandboxName: 'Azure DevOps'
+        createSandBox: true
+        maximumWaitTime: '360'
 
-- task: Veracode@3
-  enabled: true
-  inputs:
-    ConnectionDetailsSelection: 'Service Connection'
-    AnalysisService: 'verademo'
-    veracodeAppProfile: 'Verademo'
-    version: '$(build.buildNumber)'
-    filepath: '$(build.artifactstagingdirectory)'
-    sandboxName: 'Azure'
-    createSandBox: true
-    maximumWaitTime: '360'
-
-- task: Bash@3
-  enabled: false
-  displayName: Veracode Pipeline
-  inputs:
-    targetType: 'inline'
-    script: |
-      curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
-      unzip -o pipeline-scan-LATEST.zip
-      java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/s/app/target/verademo.war || true
-- publish: $(System.DefaultWorkingDirectory)/results.json
-  artifact: VeracodeBaseline
+    - task: Bash@3
+      enabled: false
+      displayName: Veracode Pipeline
+      inputs:
+        targetType: 'inline'
+        script: |
+          curl -sSO https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+          unzip -o pipeline-scan-LATEST.zip
+          java -jar pipeline-scan.jar -vid $(VERACODE_API_ID) -vkey $(VERACODE_API_KEY) -f /home/vsts/work/1/s/app/target/verademo.war || true
+    - publish: $(System.DefaultWorkingDirectory)/results.json
+      artifact: VeracodeBaseline
