@@ -20,13 +20,13 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
     - name: Build with Maven
-      run: cd app
-           mvn clean package
+      working-directory: app
+      run: mvn clean package
 
     - uses: actions/upload-artifact@v4
       with:
         name: verademo.war
-        path: target/verademo.war
+        path: app/target/verademo.war
         
   pipeline_scan:
       needs: build
@@ -41,13 +41,17 @@ jobs:
           with:
             name: verademo.war
         - name: pipeline-scan action step
-          id: pipelien-scan
+          id: pipeline-scan
           uses: veracode/Veracode-pipeline-scan-action@v1.0.12
           with:
             vid: ${{secrets.VERACODE_API_ID}}
             vkey: ${{secrets.VERACODE_API_KEY}}
             file: "verademo.war" 
             fail_build: false
+        - uses: actions/upload-artifact@v4
+          with:
+            name: results.json
+            path: ./results.json
 
   veracode-fix:
     runs-on: ubuntu-latest
@@ -60,7 +64,7 @@ jobs:
       - name: get flaw file
         uses: actions/download-artifact@v4
         with:
-          name: Veracode Pipeline-Scan Results
+          name: results.json
           
       - name: Create fixes from static findings
         id: convert
@@ -69,8 +73,8 @@ jobs:
           inputFile: results.json
           vid: ${{secrets.VERACODE_API_ID}}
           vkey: ${{secrets.VERACODE_API_KEY}}
-          source_base_path_1: "com/:src/main/java/com/"
-          source_base_path_2: "WEB-INF:src/main/webapp/WEB-INF"
+          source_base_path_1: "src/main/com/veracode/verademo/controller/"
+          # source_base_path_2: "WEB-INF:src/main/webapp/WEB-INF"
           language: java
-          prComment: true
+          prComment: false
           fixType: batch
